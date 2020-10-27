@@ -1,0 +1,409 @@
+1) Install de MongoDB en Ubuntu 20.04 
+(https://www.digitalocean.com/community/tutorials/how-to-install-mongodb-on-ubuntu-20-04-es)
+
+$ curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+Output
+OK
+
+$ apt-key list
+Output
+/etc/apt/trusted.gpg
+--------------------
+pub   rsa4096 2019-05-28 [SC] [expires: 2024-05-26]
+      2069 1EEC 3521 6C63 CAF6  6CE1 6564 08E3 90CF B1F5
+uid           [ unknown] MongoDB 4.4 Release Signing Key <packaging@mongodb.com>
+. . .
+
+$ echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+
+$ sudo apt update
+$ sudo apt install mongodb-org
+
+Iniciar el servei mongod:
+
+$ sudo systemctl start mongod.service
+$ sudo systemctl status mongod
+Output
+● mongod.service - MongoDB Database Server
+     Loaded: loaded (/lib/systemd/system/mongod.service; disabled; vendor preset: enabled)
+     Active: active (running) since Tue 2020-06-09 12:57:06 UTC; 2s ago
+       Docs: https://docs.mongodb.org/manual
+   Main PID: 37128 (mongod)
+     Memory: 64.8M
+     CGroup: /system.slice/mongod.service
+             └─37128 /usr/bin/mongod --config /etc/mongod.conf
+
+$ sudo systemctl enable mongod
+
+Obrim el terminal per interactuar amb MongoDB:
+$ mongo 
+
+Gestionar el servei de MongoDB:
+
+Comprovar l'estat del servei:
+$ sudo systemctl status mongod
+
+Aturar el servei:
+$ sudo systemctl stop mongod
+
+Iniciar el servei:
+$ sudo systemctl start mongod
+
+Reiniciar el servei:
+$ sudo systemctl restart mongod
+
+Si vols desactivar l'inici automàtic de MongoDB:
+$ sudo systemctl disable mongod
+
+Per a habilitar-lo a l'inici:
+$ sudo systemctl enable mongod
+
+2) Comandes des de la cli de MongoDB:
+
+Mostrar la llista de bbdd:
+> show dbs 
+
+Base de dades amb la que estàs treballant:
+> db
+
+Crear base de dades:
+> use udemyDb
+
+Eliminar bbdd (suposem que hem fet anar la comanda use i estem a la bbdd que toca):
+> db.dropDatabase()
+
+Crear collection:
+> db.createCollection("professor")
+> db.createCollection("course")
+
+Mostrar totes les collections de la bbdd en la que estem:
+> show collections
+
+Inserir documents:
+> db.professor.insert(
+    {
+        "nom": "Jordi",
+        "curs": 4,
+        "pais": "Catalunya",
+        "llenguatjes": ["JavaScript", "Kotlin", "Go", "Python"],
+        "adreça": {
+            "carrer": "My street",
+            "numero": 42,
+            "cp": null
+        }
+    })
+
+Inserir varis documents:
+> db.course.insertMany(
+[{
+	"nom": "Curs MongoDb",
+	"duració": 300,
+	"estudiants": 1000,
+	"data": "2020"
+},
+{
+	"nombre": "Curs NodeJs",
+	"duració": 200,
+	"estudiants": 500,
+	"data": "2021"
+},
+{
+	"nombre": "Curs Kotlin",
+	"duració": 200,
+	"estudiants": 300,
+	"data": null
+}]
+)    
+
+3) MongoDB CRUD bàsic:
+
+Per eliminar una collection tenim dos mètodes disponibles:
+
+> db.professor.drop()
+
+o bé
+
+> db.getCollection("professor").drop()
+
+Per eliminar tots els documents d'una collection:
+
+> db.professor.remove({})
+
+4) Importar fitxer que conté un array de json. Aquest array l'hem generat a partir de
+la web https://https://next.json-generator.com/ que ens permet generar un array aleatori 
+d'objectes json. Per importar, utilitzarem la comanda mongoimport.
+
+$ mongoimport --jsonArray --db bank --collection people --file ~/Documents/Nodejs/curs_udemy/S11-12/queries.json
+
+obs: si la db bank no existeix la crearà. Si la collection people no existeix la crearà. --file ens
+indica la ruta cap al fitxer json amb l'array d'objectes json.
+
+5) Queries a partir del fitxer anterior importat:
+
+Retorna el recordcount de la collection people:
+> db.people.count()
+
+Retorna la llista de people que verifica que el seu "favouriteFruit" és igual a "banana":
+> db.people.find({"favoriteFruit": "banana"}).pretty()
+> db.people.find({"favoriteFruit": "banana"}).count()
+
+Retorna la llista de people que tenen age = 23:
+> db.people.find({age: 23}).count()
+> db.people.find({age: 23}).pretty()
+
+Per més d'un camp favoriteFruit="banana" and age=23:
+> db.people.find({favoriteFruit: "banana", age: 23}).count()
+> db.people.find({favoriteFruit: "banana", age: 23}).pretty()
+
+Queries amb operadors:
+
+$eq = equal
+$ne = non equal
+$gt = greater than
+$gte = greater than or equal
+$lt = less than
+$lte = less than or equal
+
+Exemple:
+
+Retorna la llista de people que tenen age=27:
+> db.people.find({age: {$eq: 27}})
+
+Retorna la llista de people que NO tenen age=27, ie, que age<>27:
+> db.people.find({age: {$ne: 27}})
+
+Retorna la llista de people que tenen age>27:
+> db.people.find({age: {$gt: 27}})
+
+Retorna la llista de people que tenen age<27:
+> db.people.find({age: {$lt: 27}})
+
+Retorna la llista de people que tenen age>=27:
+> db.people.find({age: {$gte: 27}})
+
+Retorna la llista de people que tenen age<=27:
+> db.people.find({age: {$lte: 27}})
+
+Utilitzant més d'un operador:
+
+Documents que age>27 and age<35
+> db.people.find({age: {$gt: 27, $lt: 35}})
+
+Ordenació del query (MongoDB diferencia entre majúscules i minúscules):
+
+La collection people té un objecte a dins amb el nom "name":
+
+"name" : {
+		"first" : "Becker",
+		"last" : "Wood"
+	}
+
+Si volem cercar pels documents de la collection people que tenen un cognom (propietat "last"
+de l'objecte "name") major o igual que "W", hem de fer:
+
+> db.people.find({"name.last": {$gte: "W"}})
+
+Important: Si no podem "name.last" entre cometes dobles o simples, NO funciona!!!!
+
+Aquests resultats també es poden ordenar. Utilitzem la funció sort() que espera el/els camps
+pels que ordenarà i els possibles valors són 1 (ascendent) o -1 (descendent):
+
+> db.people.find({"name.last": {$gte: "V"}}).sort({"name.last": -1})
+
+Més operadors:
+
+$in = Cerca coincidències amb qualsevol dels valors d'un array que s'ha especificat.
+$nin = Cerca que no hi hagin coincidències amb cap dels valors d'un array que s'ha especificat.
+
+Retorna llista de documents de la collection people tals que el name.first és igual a "Geneva"
+o bé és igual a "Pamela":
+> db.people.find({"name.first": {$in: ["Geneva", "Pamela"]}})
+
+Filtrem ara per color d'ulls. Han de coincidir amb algun dels elements de l'array ["blue", "green"]
+> db.people.find({"eyeColor": {$in: ["blue", "green"]}})
+
+Filtrem pels que tenen name.first diferent de qualsevol dels que apareix a l'array ["Geneva", "Pamela"]
+> db.people.find({"name.first": {$nin: ["Geneva", "Pamela"]}})
+
+Més operadors:
+
+$and = operador que realitza l'operació lògica "i" en un array d'expressions. Selecciona tots
+       els documents que compleixen TOTES les expressions de l'array. Per tant, espera un 
+       array de condicions.
+
+$or = operador que realitza l'operació lògica "o" en un array d'expressions. Selecciona tots
+      els documents que compleixen ALMENYS UNA de les expressions de l'array. Per tant, espera 
+      un array de condicions.
+
+Exemples:
+
+Retorna una llista dels documents de la collection people tals que, age>=18 and age<>33: 
+> db.people.find({$and: [{"age": {$gte: 18}}, {"age": {$ne: 33}}]})
+
+Retorna la llista de documents de la collection people tals que, eyeColor="green" and age<>33:
+> db.people.find({$and: [{"eyeColor": "green"}, {"age": {$gte: 33}}]})
+
+Retorna la llista de documents de la collection people tals que, eyeColor="brown" or name.first="Geneva".
+La llista que compleix eyeColor="brown" és de 34 documents.
+La llista que compleix eyeColor="brown" és de 1 document.
+Per tant, la llista amb $or conté 35 documents.
+> db.people.find({$or: [{"eyeColor": "brown"}, {"name.first": "Geneva"}]})
+
+Queries en objectes fills:
+
+En cada document tenim una propietat que és un objecte:
+
+name: 
+    {
+        first: "Benjamin",
+        last: "Powers"
+    }
+
+Volem cercar per aquesta propietat.
+Retorna la llista de documents de la collection people tals que, name.first="Geneva" and 
+name.last="Ramsey" (només n'hi ha un de document que ho compleixi): 
+> db.people.find({"name": {"first": "Geneva", "last": "Ramsey"}})
+
+ULL! L'ordre de l'objecte és molt important, ie, si invertim l'ordre:
+> db.people.find({"name": {"last": "Ramsey", "first": "Geneva"}})
+aleshores NO retornarà RES.
+
+Cercar en un array:
+
+En el nostre cas tenim un element tags que és un array:
+
+tags:
+    0: "duis",
+    1: "sit",
+    2: "laborum",
+    3: "excepteur",
+    4: "proident"
+
+No retorna res pq han d'estar tots els valors de l'array i AMB EL MATEIX ORDRE:
+> db.people.find({"tags": ["duis"]})
+
+Ara si que el retorna:
+> db.people.find({"tags": ["duis","sit", "laborum", "excepteur", "proident"]})
+
+Si alterem l'ordre dels elements de l'array, tampoc trobarà cap document.
+
+Retorna la llista de documents de la collection people tals que, el seu array tags
+conté almenys un element igual a "proident":
+> db.people.find({"tags": "proident"})
+
+Retorna la llista de documents de la collection people tals que, en la posició 1 de
+l'array tags, hi ha un element amb el valor = "sit" (recordem que l'array comença
+amb índex 0):
+> db.people.find({"tags.1": "sit"})
+
+6) Update i Delete: actualitzar i esborrar documents: 
+
+db.collection.update(
+    //query
+    {},
+    //update
+    {},
+    //options (opcional)
+    {}
+)
+
+Operadors:
+
+$set = Reemplaça els valors d'un camp d'un document pel valor específic que se li passa.
+$unset = ESborra un camp particular d'un document.
+
+Exemple:
+
+Actualitza el document amb _id="5d50150630f4f534c05f9e45" amb els valors name.first="Jordi" i
+name.last="GCI":
+> db.people.update(
+    //query
+    {"_id": "5d50150630f4f534c05f9e45"},
+    //update
+    {$set: {"name.first": "Jordi", "name.last": "GCI"}})
+
+Retorna desde linia de comandes:
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+
+Actualitza el document amb _id="5d50150630f4f534c05f9e45" afegint un nou subcamp al camp "name"
+anomenat second. De manera que ara aquest document i NOMÉS aquest document compleix:
+
+name: 
+    {
+        first: "Jordi",
+        last: "GCI",
+        second: "Guru"
+    }
+
+> db.people.update(
+    //query
+    {"_id": "5d50150630f4f534c05f9e45"},
+    //update
+    {$set: {"name.second": "Guru"}})
+
+Retorna per cli:
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+
+Afegeix al document amb _id="5d50150630f4f534c05f9e45" un nou camp "salary" amb el 
+valor 4980:
+> db.people.update({"_id": "5d50150630f4f534c05f9e45"}, {$set: {"salary": 4980}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+
+$unset permet esborrar el camp "email" del document amb _id="5d50150630f4f534c05f9e45":
+> db.people.update({"_id": "5d50150630f4f534c05f9e45"}, {$unset: {"email": "geneva.ramsey@volax.info"}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+
+Ens permet esborrar el camp "latitude" directament posant un 1
+> db.people.update({"_id": "5d50150630f4f534c05f9e45"}, {$unset: {"latitude": 1}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+
+Actualitzar varis documents alhora:
+
+Actualitza tots els documents de la collection people (per això hi ha {} sense condicions)
+i l'opció {multi: true} ens indica que actualitzi tots els valors: 
+> db.people.update({}, {$set: {"salary": 5432}}, {multi: true})
+WriteResult({ "nMatched" : 100, "nUpserted" : 0, "nModified" : 99 })
+
+Actualitza el valor NOMÉS del primer (updateOne) document tal que eyeColor="green" i actualitzar
+el valor del camp salary=3210:
+> db.people.updateOne({"eyeColor": "green"}, {$set: {"salary": 3210}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+
+Actualitza el valor de tots (updateMany) els documents tal que eyeColor="blue" i actualitzar
+el valor del camp salary=7654:
+> db.people.updateMany({"eyeColor": "blue"}, {$set: {"salary": 7654}})
+{ "acknowledged" : true, "matchedCount" : 33, "modifiedCount" : 33 }
+
+db.collection.replaceOne(filter, replacement, options): Replaces a single document within 
+the collection based on the filter.
+> db.people.replaceOne({"_id": "5d501506d49a13e3cd8c25c2"}, {"_id": "5d501506d49a13e3cd8c25c2", "name.first": "Ariadna", "name.last": "TP", "salary": 10234})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+
+El resultat és:
+
+{
+    "_id": "5d501506d49a13e3cd8c25c2",
+    "name.first": "Ariadna",
+    "name.last": "TP",
+    "salary": 10234
+}
+
+És a dir, hem reemplaçat el document amb _id="5d501506d49a13e3cd8c25c2" pels valors indicats i hem
+eliminat la resta.
+
+Eliminem totes les dades del document amb _id="5d5015069d894b19b91c71f1" i només li deixem els camps
+_id i deleted:
+> db.people.replaceOne({"_id": "5d5015069d894b19b91c71f1"}, {"_id": "5d5015069d894b19b91c71f1", "deleted": true})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+
+El resultat és:
+
+{
+    "_id": "5d5015069d894b19b91c71f1",
+    "deleted": true
+}
+
+Actualitzem el document _id="5d501506306f70abce486401" i li canviem el camp name.first="Mireia" i 
+eliminem el camp email:
+> db.people.updateOne({"_id": "5d501506306f70abce486401"}, {$set: {"name.first": "Mireia"}, $unset: {"email": 1}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }

@@ -1,0 +1,75 @@
+db.professor.insert(
+{
+    "nombre": "Albert",
+    "cursos": 4,
+    "pais": null,
+    "lenguajes": ["Java", "Kotlin", "Swift"], 
+    "direccion": {
+        "carrer": "Mi carrer",
+        "numero": 3
+        }
+})
+
+db.professor.insertOne(
+{
+    "nombre": "Maria",
+    "cursos": 5,
+    "pais": "Catalunya",
+    "lenguajes": ["Java", "Kotlin", "Swift"], 
+    "direccion": {
+        "carrer": "Maria carrer",
+        "numero": 5
+        }
+})
+
+db.professor.insertMany(
+[
+	{
+    	"nombre": "Ariadna",
+	    "cursos": 5,
+    	"pais": "Catalunya",
+    	"lenguajes": ["Java", "Kotlin", "Swift"], 
+    	"direccion": {
+        	"carrer": "Maria carrer",
+        	"numero": 5
+        }
+	},
+	{
+    	"nombre": "Mireia",
+	    "cursos": 5,
+    	"pais": "Catalunya",
+    	"lenguajes": ["Java", "Kotlin", "Swift"], 
+    	"direccion": {
+        	"carrer": "Maria carrer",
+        	"numero": 5
+        }
+	},
+	{
+    	"nombre": "Laura",
+	    "cursos": 5,
+    	"pais": "Catalunya",
+    	"lenguajes": ["Java", "Kotlin", "Swift"], 
+    	"direccion": {
+        	"carrer": "Maria carrer",
+        	"numero": 5
+        }
+	},
+])
+
+db.professor.insertOne({
+	"Double": 10,
+	"String": "Albert",
+	"Boolean": true,
+	"Date": new Date(),
+	"Null": null,
+	"NumberInt": NumberInt(100),
+    "NumberLong": NumberLong(123356789),
+    "object": {
+        "Double": 12,
+        "String": "Albert"
+    },
+    "array": [1,2,3]
+})
+
+
+
